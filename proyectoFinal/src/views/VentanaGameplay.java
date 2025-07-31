@@ -7,8 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.imageio.ImageIO;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Ventana principal del juego con estilo Minecraft mejorada
