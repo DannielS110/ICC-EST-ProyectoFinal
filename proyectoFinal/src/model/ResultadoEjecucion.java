@@ -14,6 +14,7 @@ public class ResultadoEjecucion {
     private int celdasVisitadas;
     private List<Celda> camino;
     private boolean encontroSolucion;
+    private List<Celda> ordenVisitas;
     
     // Campos para Programación Dinámica
     private boolean usoProgramacionDinamica;
@@ -28,6 +29,7 @@ public class ResultadoEjecucion {
         this.usoProgramacionDinamica = false;
         this.cachesUtilizados = 0;
         this.tamanoCache = 0;
+        this.ordenVisitas = new ArrayList<>();
     }
     
     // Getters y Setters existentes
@@ -110,6 +112,9 @@ public class ResultadoEjecucion {
         this.tamanoCache = tamanoCache; 
     }
     
+    public void setOrdenVisitas(List<Celda> ordenVisitas) { this.ordenVisitas = ordenVisitas; }
+    
+    public List<Celda> getOrdenVisitas() { return ordenVisitas; }
     /**
      * Genera un resumen de las métricas para debugging
      */

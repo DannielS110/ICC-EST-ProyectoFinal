@@ -351,89 +351,56 @@ public class PanelLaberinto extends JPanel {
         g2.drawString(dots, getWidth() - 90, 30);
     }
     
-    /**
-     * CORREGIDO: Método principal de animación que muestra visitadas y camino
-     */
     public void animarSolucion(ResultadoEjecucion resultado) {
         if (resultado == null || animacionEnProgreso) return;
-        
         limpiarAnimacion();
         this.resultadoActual = resultado;
         animacionEnProgreso = true;
-        
-        // Obtener todas las celdas visitadas del laberinto
-        List<Celda> todasLasVisitadas = new ArrayList<>();
-        for (int i = 0; i < laberinto.getFilas(); i++) {
-            for (int j = 0; j < laberinto.getColumnas(); j++) {
-                Celda celda = laberinto.getCelda(i, j);
-                // Incluir todas las celdas visitadas excepto inicio
-                if (celda.isVisitada() && !celda.equals(laberinto.getInicio()) && !celda.equals(laberinto.getFin())) {
-                    todasLasVisitadas.add(celda);
-                }
-            }
-        }
-        
-        System.out.println("Celdas visitadas a animar: " + todasLasVisitadas.size());
-        
-        // Animar celdas visitadas
-        animarCeldasVisitadas(todasLasVisitadas, () -> {
-            // Después de animar visitadas, animar el camino
-            if (resultado.isEncontroSolucion()) {
-                List<Celda> caminoSinInicioFin = new ArrayList<>();
-                for (Celda c : resultado.getCamino()) {
-                    if (!c.equals(laberinto.getInicio()) && !c.equals(laberinto.getFin())) {
-                        caminoSinInicioFin.add(c);
-                    }
-                }
-                animarCaminoFinal(caminoSinInicioFin);
-            } else {
-                animacionEnProgreso = false;
-                JOptionPane.showMessageDialog(this, 
-                    "No se encontró solución", 
-                    "Sin solución", 
-                    JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-    }
-    
-    /**
-     * CORREGIDO: Anima las celdas visitadas de forma eficiente
-     */
-    private void animarCeldasVisitadas(List<Celda> visitadas, Runnable onComplete) {
-        if (visitadas.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-        
+
+        // Obtener orden de celdas visitadas
+        List<Celda> ordenVisitasTmp = resultado.getOrdenVisitas();
+        final List<Celda> ordenVisitas = (ordenVisitasTmp == null) ? new ArrayList<>() : ordenVisitasTmp;
+
         final int[] indice = {0};
-        
-        // Timer más rápido para las visitadas
-        timerAnimacion = new Timer(velocidadAnimacion / 2, null);
-        
+        timerAnimacion = new Timer(velocidadAnimacion, null);
+
         timerAnimacion.addActionListener(e -> {
-            if (indice[0] < visitadas.size()) {
-                // Animar varias celdas a la vez para mayor velocidad
-                int celdasPorFrame = Math.max(1, visitadas.size() / 50);
-                
-                for (int i = 0; i < celdasPorFrame && indice[0] < visitadas.size(); i++) {
-                    Celda celda = visitadas.get(indice[0]);
-                    celdasAnimadasVisitadas.add(celda);
-                    indice[0]++;
-                }
-                
+            if (indice[0] < ordenVisitas.size()) {
+                Celda celda = ordenVisitas.get(indice[0]);
+                celdasAnimadasVisitadas.add(celda);
+                celdaActualAnimacion = celda; // Nuevo: para destacar la celda actual si quieres efecto
                 repaint();
+                indice[0]++;
             } else {
                 timerAnimacion.stop();
                 celdaActualAnimacion = null;
-                onComplete.run();
+                // Cuando termina de pintar visitadas, ahora pinta el camino de solución en amarillo
+                if (resultado.isEncontroSolucion()) {
+                    List<Celda> caminoSinInicioFin = new ArrayList<>();
+                    for (Celda c : resultado.getCamino()) {
+                        if (!c.equals(laberinto.getInicio()) && !c.equals(laberinto.getFin())) {
+                            caminoSinInicioFin.add(c);
+                        }
+                    }
+                    animarCaminoFinal(caminoSinInicioFin);
+                } else {
+                    animacionEnProgreso = false;
+                    JOptionPane.showMessageDialog(this, 
+                        "No se encontró solución", 
+                        "Sin solución", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
-        
         timerAnimacion.start();
     }
-    
+
+
+
     /**
-     * CORREGIDO: Anima el camino final y mantiene todo visible
+     * Ahora solo animamos el camino sobre las visitadas,
+     * opcionalmente puedes eliminar la celda del camino de las visitadas para
+     * que solo se vea dorada
      */
     private void animarCaminoFinal(List<Celda> camino) {
         if (camino.isEmpty()) {
@@ -449,6 +416,8 @@ public class PanelLaberinto extends JPanel {
                 Celda celda = camino.get(indice[0]);
                 celdaActualAnimacion = celda;
                 celdasAnimadasCamino.add(celda);
+                // Opcional: quitar de visitadas si quieres que sea SOLO dorado
+                celdasAnimadasVisitadas.remove(celda);
                 repaint();
                 indice[0]++;
             } else {
@@ -459,7 +428,6 @@ public class PanelLaberinto extends JPanel {
         
         timerCamino.start();
     }
-    
     /**
      * NUEVO: Finaliza la animación y mantiene los colores
      */
