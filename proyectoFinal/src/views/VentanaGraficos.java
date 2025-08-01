@@ -61,7 +61,7 @@ public class VentanaGraficos extends JDialog {
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.setFont(new Font("Arial", Font.BOLD, 14));
         btnCerrar.setBackground(new Color(150, 150, 150));
-        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setForeground(Color.BLACK);
         btnCerrar.setFocusPainted(false);
         btnCerrar.addActionListener(e -> dispose());
         
