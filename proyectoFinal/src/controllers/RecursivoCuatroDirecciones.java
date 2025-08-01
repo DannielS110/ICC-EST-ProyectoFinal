@@ -5,22 +5,30 @@ import java.util.*;
 
 /**
  * Implementación del algoritmo Recursivo con 4 direcciones
- * Explora en todas las direcciones posibles
+ * VERSIÓN CORREGIDA: Implementa interfaz y usa nanosegundos
  */
-public class RecursivoCuatroDirecciones {
+public class RecursivoCuatroDirecciones implements AlgoritmoLaberinto {
     private Laberinto laberinto;
     private List<Celda> caminoActual;
     private List<Celda> mejorCamino;
     private int celdasVisitadas;
     private boolean encontrado;
+    private String nombre;
     
     public RecursivoCuatroDirecciones(Laberinto laberinto) {
         this.laberinto = laberinto;
+        this.nombre = "Recursivo 4 direcciones";
     }
     
+    @Override
+    public String getNombre() {
+        return nombre;
+    }
+    
+    @Override
     public ResultadoEjecucion resolver() {
-        ResultadoEjecucion resultado = new ResultadoEjecucion("Recursivo 4 Direcciones");
-        long tiempoInicio = System.currentTimeMillis();
+        ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
+        long tiempoInicio = System.nanoTime(); // CAMBIO: usar nanoTime
         
         // Reiniciar variables
         laberinto.reiniciarVisitadas();
@@ -47,7 +55,10 @@ public class RecursivoCuatroDirecciones {
         }
         
         resultado.setCeldasVisitadas(celdasVisitadas);
-        resultado.setTiempoEjecucion(System.currentTimeMillis() - tiempoInicio);
+        
+        // CAMBIO: Calcular tiempo en nanosegundos
+        long tiempoNs = System.nanoTime() - tiempoInicio;
+        resultado.setTiempoEjecucionNs(tiempoNs);
         
         return resultado;
     }

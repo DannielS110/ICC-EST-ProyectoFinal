@@ -5,22 +5,30 @@ import java.util.*;
 
 /**
  * Implementación del algoritmo Recursivo con 2 direcciones (derecha y abajo)
- * Más simple pero limitado en movimientos
+ * VERSIÓN CORREGIDA: Implementa interfaz y usa nanosegundos
  */
-public class RecursivoDosDirecciones {
+public class RecursivoDosDirecciones implements AlgoritmoLaberinto {
     private Laberinto laberinto;
     private List<Celda> caminoActual;
     private List<Celda> mejorCamino;
     private int celdasVisitadas;
     private boolean encontrado;
+    private String nombre;
     
     public RecursivoDosDirecciones(Laberinto laberinto) {
         this.laberinto = laberinto;
+        this.nombre = "Recursivo 2 direcciones";
     }
     
+    @Override
+    public String getNombre() {
+        return nombre;
+    }
+    
+    @Override
     public ResultadoEjecucion resolver() {
-        ResultadoEjecucion resultado = new ResultadoEjecucion("Recursivo 2 Direcciones");
-        long tiempoInicio = System.currentTimeMillis();
+        ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
+        long tiempoInicio = System.nanoTime(); // CAMBIO: usar nanoTime
         
         // Reiniciar variables
         laberinto.reiniciarVisitadas();
@@ -47,7 +55,10 @@ public class RecursivoDosDirecciones {
         }
         
         resultado.setCeldasVisitadas(celdasVisitadas);
-        resultado.setTiempoEjecucion(System.currentTimeMillis() - tiempoInicio);
+        
+        // CAMBIO: Calcular tiempo en nanosegundos
+        long tiempoNs = System.nanoTime() - tiempoInicio;
+        resultado.setTiempoEjecucionNs(tiempoNs);
         
         return resultado;
     }

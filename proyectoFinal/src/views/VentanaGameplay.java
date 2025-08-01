@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Ventana principal del juego con estilo Minecraft mejorada
- * CORRECCIONES APLICADAS A LOS BOTONES
+ * VERSIÓN FINAL COMPLETA CON TODAS LAS CORRECCIONES
  */
 public class VentanaGameplay extends JFrame {
     private Laberinto laberinto;
@@ -40,10 +40,10 @@ public class VentanaGameplay extends JFrame {
      */
     public VentanaGameplay(int filas, int columnas) {
         super("Resolvedor de Laberintos - Minecraft Edition");
-        this.COLOR_FONDO= new Color(139, 195, 74);
-        this.COLOR_BOTON= new Color(144, 164, 174);
-        this.COLOR_TEXTO= Color.WHITE;
-        this.COLOR_PANEL= new Color(101, 67, 33);
+        this.COLOR_FONDO = new Color(139, 195, 74);
+        this.COLOR_BOTON = new Color(144, 164, 174);
+        this.COLOR_TEXTO = Color.WHITE;
+        this.COLOR_PANEL = new Color(101, 67, 33);
         
         // Inicializar componentes con dimensiones específicas
         this.laberinto = new Laberinto(filas, columnas);
@@ -56,6 +56,9 @@ public class VentanaGameplay extends JFrame {
         // Generar un laberinto inicial
         laberinto.generarLaberintoSimple();
         panelLaberinto.repaint();
+        pack();
+        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(900, 700));
     }
     
     /**
@@ -213,11 +216,10 @@ public class VentanaGameplay extends JFrame {
         // Sección Laberinto
         agregarSeccion(panel, "LABERINTO");
         
-        // CORRECCIÓN: Asegurar que los botones funcionen correctamente
         JButton btnGenerar = crearBoton("Generar Nuevo", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Botón Generar Nuevo presionado"); // Debug
+                System.out.println("Botón Generar Nuevo presionado");
                 generarLaberinto();
             }
         });
@@ -225,7 +227,7 @@ public class VentanaGameplay extends JFrame {
         JButton btnLimpiar = crearBoton("Limpiar", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Botón Limpiar presionado"); // Debug
+                System.out.println("Botón Limpiar presionado");
                 limpiarLaberinto();
             }
         });
@@ -424,9 +426,8 @@ public class VentanaGameplay extends JFrame {
         return panel;
     }
     
-    // CORRECCIÓN: Métodos de acción implementados correctamente
     private void generarLaberinto() {
-        System.out.println("Generando nuevo laberinto..."); // Debug
+        System.out.println("Generando nuevo laberinto...");
         
         // Mostrar diálogo de configuración de tamaño
         int[] dimensiones = solicitarDimensionesNuevo();
@@ -452,10 +453,6 @@ public class VentanaGameplay extends JFrame {
         }
     }
     
-    /**
-     * Solicita al usuario las dimensiones para un nuevo laberinto
-     * @return array con [filas, columnas] o null si cancela
-     */
     private int[] solicitarDimensionesNuevo() {
         // Crear panel personalizado estilo Minecraft
         JDialog dialog = new JDialog(this, "Configurar Nuevo Laberinto", true);
@@ -668,7 +665,7 @@ public class VentanaGameplay extends JFrame {
     }
     
     private void limpiarLaberinto() {
-        System.out.println("Limpiando laberinto..."); // Debug
+        System.out.println("Limpiando laberinto...");
         laberinto.limpiar();
         panelLaberinto.limpiarResultado();
         limpiarEstadisticas();
@@ -676,6 +673,9 @@ public class VentanaGameplay extends JFrame {
         repaint();
     }
     
+    /**
+     * MÉTODO CORREGIDO: Resuelve el laberinto con el algoritmo seleccionado
+     */
     private void resolver() {
         if (panelLaberinto.isAnimacionEnProgreso()) {
             JOptionPane.showMessageDialog(this, 
@@ -685,65 +685,116 @@ public class VentanaGameplay extends JFrame {
             return;
         }
         
+        // Verificar que hay inicio y fin
+        if (laberinto.getInicio() == null || laberinto.getFin() == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor defina el punto de inicio (A) y fin (B)", 
+                "Advertencia", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         String algoritmoSeleccionado = (String) comboAlgoritmos.getSelectedItem();
-        ResultadoEjecucion resultado = null;
+        final ResultadoEjecucion[] resultado = new ResultadoEjecucion[1];
         
         // Cambiar estado de botones
         btnResolver.setEnabled(false);
         btnDetener.setEnabled(true);
         lblEstado.setText("Resolviendo...");
         
-        // Crear copia del laberinto para no modificar el original
+        // Actualizar velocidad de animación
+        int velocidad = (Integer) spinnerVelocidad.getValue();
+        panelLaberinto.setVelocidadAnimacion(velocidad);
+        
+        // Limpiar resultado anterior
+        panelLaberinto.limpiarResultado();
+        
+        // Crear copia del laberinto para no modificar el original durante el algoritmo
         Laberinto copiaLaberinto = laberinto.clonar();
         
-        // Medir tiempo en nanosegundos
-        long tiempoInicio = System.nanoTime();
-        
         // Ejecutar el algoritmo seleccionado
-        if (algoritmoSeleccionado.contains("BFS")) {
-            BFS bfs = new BFS(copiaLaberinto);
-            resultado = bfs.resolver();
-        } else if (algoritmoSeleccionado.contains("DFS")) {
-            DFS dfs = new DFS(copiaLaberinto);
-            resultado = dfs.resolver();
-        } else if (algoritmoSeleccionado.equals("Recursivo 2 direcciones")) {
-            RecursivoDosDirecciones r2d = new RecursivoDosDirecciones(copiaLaberinto);
-            resultado = r2d.resolver();
-        } else if (algoritmoSeleccionado.equals("Recursivo 4 direcciones")) {
-            RecursivoCuatroDirecciones r4d = new RecursivoCuatroDirecciones(copiaLaberinto);
-            resultado = r4d.resolver();
-        } else if (algoritmoSeleccionado.contains("backtracking")) {
-            RecursivoBacktracking rb = new RecursivoBacktracking(copiaLaberinto);
-            resultado = rb.resolver();
+        try {
+            if (algoritmoSeleccionado.contains("BFS")) {
+                BFS bfs = new BFS(copiaLaberinto);
+                resultado[0] = bfs.resolver();
+            } else if (algoritmoSeleccionado.contains("DFS")) {
+                DFS dfs = new DFS(copiaLaberinto);
+                resultado[0] = dfs.resolver();
+            } else if (algoritmoSeleccionado.equals("Recursivo 2 direcciones")) {
+                RecursivoDosDirecciones r2d = new RecursivoDosDirecciones(copiaLaberinto);
+                resultado[0] = r2d.resolver();
+            } else if (algoritmoSeleccionado.equals("Recursivo 4 direcciones")) {
+                RecursivoCuatroDirecciones r4d = new RecursivoCuatroDirecciones(copiaLaberinto);
+                resultado[0] = r4d.resolver();
+            } else if (algoritmoSeleccionado.contains("backtracking")) {
+                RecursivoBacktracking rb = new RecursivoBacktracking(copiaLaberinto);
+                resultado[0] = rb.resolver();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error al ejecutar el algoritmo: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            btnResolver.setEnabled(true);
+            btnDetener.setEnabled(false);
+            lblEstado.setText("Error");
+            return;
         }
         
-        long tiempoFin = System.nanoTime();
-        
-        if (resultado != null) {
-            // Actualizar tiempo en nanosegundos
-            resultado.setTiempoEjecucionNs(tiempoFin - tiempoInicio);
+        if (resultado[0] != null) {
+            // Actualizar estadísticas inmediatamente
+            actualizarEstadisticas(resultado[0]);
             
-            // Actualizar estadísticas
-            actualizarEstadisticas(resultado);
+            // IMPORTANTE: Copiar el estado de visitadas y camino al laberinto original
+            copiarEstadoAlLaberintoOriginal(copiaLaberinto);
             
-            // Animar la solución
-            panelLaberinto.animarSolucion(resultado);
+            // Animar la solución con el laberinto que tiene los estados correctos
+            panelLaberinto.animarSolucion(resultado[0]);
             
-            // Guardar en CSV
-            if (resultado.isEncontroSolucion()) {
-                guardador.guardarResultado(resultado, laberinto.getFilas(), laberinto.getColumnas());
+            // Guardar en CSV si encontró solución
+            if (resultado[0].isEncontroSolucion()) {
+                guardador.guardarResultado(resultado[0], laberinto.getFilas(), laberinto.getColumnas());
                 lblEstado.setText("Solución encontrada");
             } else {
                 lblEstado.setText("Sin solución");
             }
             
-            // Restaurar botones después de la animación
-            Timer timer = new Timer(3000, e -> {
+            // Restaurar botones después de un tiempo prudente
+            int tiempoEspera = resultado[0].getCeldasVisitadas() * velocidad / 2 + 
+                              resultado[0].getLongitudCamino() * velocidad * 2 + 1000;
+            tiempoEspera = Math.min(tiempoEspera, 10000); // Máximo 10 segundos
+            
+            Timer timer = new Timer(tiempoEspera, e -> {
                 btnResolver.setEnabled(true);
                 btnDetener.setEnabled(false);
+                if (resultado[0].isEncontroSolucion()) {
+                    lblEstado.setText("Listo - Solución mostrada");
+                }
             });
             timer.setRepeats(false);
             timer.start();
+        } else {
+            // Si no hay resultado, restaurar botones
+            btnResolver.setEnabled(true);
+            btnDetener.setEnabled(false);
+            lblEstado.setText("Error al resolver");
+        }
+    }
+    
+    /**
+     * Copia el estado de las celdas del laberinto copia al original
+     */
+    private void copiarEstadoAlLaberintoOriginal(Laberinto copiaLaberinto) {
+        for (int i = 0; i < laberinto.getFilas(); i++) {
+            for (int j = 0; j < laberinto.getColumnas(); j++) {
+                Celda celdaOriginal = laberinto.getCelda(i, j);
+                Celda celdaCopia = copiaLaberinto.getCelda(i, j);
+                
+                // Copiar estados de visitada y en camino
+                celdaOriginal.setVisitada(celdaCopia.isVisitada());
+                celdaOriginal.setEnCamino(celdaCopia.isEnCamino());
+            }
         }
     }
     
@@ -798,36 +849,41 @@ public class VentanaGameplay extends JFrame {
                     
                     // Ejecutar algoritmo
                     Laberinto copiaLaberinto = laberinto.clonar();
-                    ResultadoEjecucion resultado = null;
+                    final ResultadoEjecucion[] resultadoHolder = new ResultadoEjecucion[1];
                     
                     long tiempoInicio = System.nanoTime();
                     
                     if (algoritmoActual.contains("BFS")) {
-                        resultado = new BFS(copiaLaberinto).resolver();
+                        resultadoHolder[0] = new BFS(copiaLaberinto).resolver();
                     } else if (algoritmoActual.contains("DFS")) {
-                        resultado = new DFS(copiaLaberinto).resolver();
+                        resultadoHolder[0] = new DFS(copiaLaberinto).resolver();
                     } else if (algoritmoActual.equals("Recursivo 2 direcciones")) {
-                        resultado = new RecursivoDosDirecciones(copiaLaberinto).resolver();
+                        resultadoHolder[0] = new RecursivoDosDirecciones(copiaLaberinto).resolver();
                     } else if (algoritmoActual.equals("Recursivo 4 direcciones")) {
-                        resultado = new RecursivoCuatroDirecciones(copiaLaberinto).resolver();
+                        resultadoHolder[0] = new RecursivoCuatroDirecciones(copiaLaberinto).resolver();
                     } else if (algoritmoActual.contains("backtracking")) {
-                        resultado = new RecursivoBacktracking(copiaLaberinto).resolver();
+                        resultadoHolder[0] = new RecursivoBacktracking(copiaLaberinto).resolver();
                     }
                     
                     long tiempoFin = System.nanoTime();
                     
-                    if (resultado != null) {
-                        resultado.setTiempoEjecucionNs(tiempoFin - tiempoInicio);
-                        todosResultados.add(resultado);
+                    if (resultadoHolder[0] != null) {
+                        resultadoHolder[0].setTiempoEjecucionNs(tiempoFin - tiempoInicio);
+                        todosResultados.add(resultadoHolder[0]);
                         
                         // Actualizar estadísticas
-                        final ResultadoEjecucion resultadoFinal = resultado;
+                        final ResultadoEjecucion resultadoFinal = resultadoHolder[0];
                         SwingUtilities.invokeLater(() -> {
                             actualizarEstadisticas(resultadoFinal);
                         });
                         
+                        // Copiar estado al laberinto original
+                        SwingUtilities.invokeAndWait(() -> {
+                            copiarEstadoAlLaberintoOriginal(copiaLaberinto);
+                        });
+                        
                         // Mostrar si encontró solución o no
-                        final boolean encontroSolucion = resultado.isEncontroSolucion();
+                        final boolean encontroSolucion = resultadoHolder[0].isEncontroSolucion();
                         SwingUtilities.invokeLater(() -> {
                             if (!encontroSolucion) {
                                 JOptionPane.showMessageDialog(this,
@@ -839,13 +895,15 @@ public class VentanaGameplay extends JFrame {
                         
                         // Animar la solución solo si la encontró
                         if (encontroSolucion) {
-                            panelLaberinto.animarSolucion(resultado);
+                            SwingUtilities.invokeLater(() -> {
+                                panelLaberinto.animarSolucion(resultadoHolder[0]);
+                            });
                             
                             // Esperar a que termine la animación
                             Thread.sleep(3000);
                             
                             // Guardar resultado
-                            guardador.guardarResultado(resultado, laberinto.getFilas(), laberinto.getColumnas());
+                            guardador.guardarResultado(resultadoHolder[0], laberinto.getFilas(), laberinto.getColumnas());
                         } else {
                             // Espera menor si no hay solución
                             Thread.sleep(1000);
@@ -1049,8 +1107,20 @@ public class VentanaGameplay extends JFrame {
         ventana.setVisible(true);
     }
     
+    /**
+     * CORREGIDO: Actualiza las estadísticas mostrando el tiempo correctamente
+     */
     private void actualizarEstadisticas(ResultadoEjecucion resultado) {
-        lblTiempo.setText(resultado.getTiempoEjecucion() + " ms");
+        // Mostrar tiempo en milisegundos con decimales si es necesario
+        long tiempoMs = resultado.getTiempoEjecucion();
+        if (tiempoMs == 0 && resultado.getTiempoEjecucionNs() > 0) {
+            // Si el tiempo en ms es 0, mostrar con decimales
+            double tiempoMsDouble = resultado.getTiempoEjecucionNs() / 1_000_000.0;
+            lblTiempo.setText(String.format("%.2f ms", tiempoMsDouble));
+        } else {
+            lblTiempo.setText(tiempoMs + " ms");
+        }
+        
         lblCeldas.setText(String.valueOf(resultado.getCeldasVisitadas()));
         lblLongitud.setText(resultado.isEncontroSolucion() ? 
             String.valueOf(resultado.getLongitudCamino()) : "No encontrado");

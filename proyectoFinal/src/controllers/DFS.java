@@ -5,21 +5,30 @@ import java.util.*;
 
 /**
  * Implementación del algoritmo DFS (Búsqueda en Profundidad)
+ * VERSIÓN CORREGIDA: Implementa interfaz y usa nanosegundos
  */
-public class DFS {
+public class DFS implements AlgoritmoLaberinto {
     private Laberinto laberinto;
     private Map<Celda, Celda> padres;
     private int celdasVisitadas;
+    private String nombre;
     
     public DFS(Laberinto laberinto) {
         this.laberinto = laberinto;
         this.padres = new HashMap<>();
         this.celdasVisitadas = 0;
+        this.nombre = "DFS (Depth-First Search)";
     }
     
+    @Override
+    public String getNombre() {
+        return nombre;
+    }
+    
+    @Override
     public ResultadoEjecucion resolver() {
-        ResultadoEjecucion resultado = new ResultadoEjecucion("DFS");
-        long tiempoInicio = System.currentTimeMillis();
+        ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
+        long tiempoInicio = System.nanoTime(); // CAMBIO: usar nanoTime
         
         laberinto.reiniciarVisitadas();
         padres.clear();
@@ -67,7 +76,10 @@ public class DFS {
         }
         
         resultado.setCeldasVisitadas(celdasVisitadas);
-        resultado.setTiempoEjecucion(System.currentTimeMillis() - tiempoInicio);
+        
+        // CAMBIO: Calcular tiempo en nanosegundos
+        long tiempoNs = System.nanoTime() - tiempoInicio;
+        resultado.setTiempoEjecucionNs(tiempoNs);
         
         return resultado;
     }

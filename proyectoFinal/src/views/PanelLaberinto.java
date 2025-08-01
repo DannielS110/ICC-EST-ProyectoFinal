@@ -10,12 +10,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Panel mejorado para dibujar el laberinto con estilo Minecraft y animaciones
+ * VERSIÓN FINAL CORREGIDA: Animación correcta y persistencia de colores
  */
 public class PanelLaberinto extends JPanel {
     private Laberinto laberinto;
     private ResultadoEjecucion resultadoActual;
     private int tamanioCelda = 25;
     private ModoEdicion modoActual = ModoEdicion.NORMAL;
+    private int velocidadAnimacion = 50;
+    
+    // Variables para el centrado
+    private int offsetX = 0;
+    private int offsetY = 0;
     
     // Estados de animación
     private List<Celda> celdasAnimadasVisitadas = new CopyOnWriteArrayList<>();
@@ -63,7 +69,8 @@ public class PanelLaberinto extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 Point nuevaPosicion = getCeldaEnPosicion(e.getX(), e.getY());
-                if (!nuevaPosicion.equals(ultimaPosicion)) {
+                if ((nuevaPosicion == null && ultimaPosicion != null) || 
+                    (nuevaPosicion != null && !nuevaPosicion.equals(ultimaPosicion))) {
                     ultimaPosicion = nuevaPosicion;
                     repaint();
                 }
@@ -71,17 +78,40 @@ public class PanelLaberinto extends JPanel {
         });
     }
     
+    /**
+     * Calcula los offsets para centrar el laberinto
+     */
+    private void calcularOffsets() {
+        int totalAncho = laberinto.getColumnas() * tamanioCelda;
+        int totalAlto = laberinto.getFilas() * tamanioCelda;
+        offsetX = (getWidth() - totalAncho) / 2;
+        offsetY = (getHeight() - totalAlto) / 2;
+        
+        // Asegurar que los offsets no sean negativos
+        offsetX = Math.max(20, offsetX);
+        offsetY = Math.max(20, offsetY);
+    }
+    
     private Point getCeldaEnPosicion(int x, int y) {
-        int fila = (y - 20) / tamanioCelda;
-        int columna = (x - 20) / tamanioCelda;
-        return new Point(columna, fila);
+        // Calcular offsets actuales
+        calcularOffsets();
+        
+        // Ajustar coordenadas con el offset
+        int fila = (y - offsetY) / tamanioCelda;
+        int columna = (x - offsetX) / tamanioCelda;
+        
+        // Verificar si está dentro de los límites
+        if (laberinto.esValida(fila, columna)) {
+            return new Point(columna, fila);
+        }
+        return null;
     }
     
     private void actualizarTamanio() {
-        setPreferredSize(new Dimension(
-            laberinto.getColumnas() * tamanioCelda + 40,
-            laberinto.getFilas() * tamanioCelda + 40
-        ));
+        // Tamaño mínimo para permitir scroll si es necesario
+        int anchoMinimo = laberinto.getColumnas() * tamanioCelda + 40;
+        int altoMinimo = laberinto.getFilas() * tamanioCelda + 40;
+        setPreferredSize(new Dimension(anchoMinimo, altoMinimo));
         revalidate();
     }
     
@@ -93,76 +123,82 @@ public class PanelLaberinto extends JPanel {
     }
     
     private void manejarClick(MouseEvent e) {
-        int fila = (e.getY() - 20) / tamanioCelda;
-        int columna = (e.getX() - 20) / tamanioCelda;
+        Point celda = getCeldaEnPosicion(e.getX(), e.getY());
+        if (celda == null) return;
         
-        if (laberinto.esValida(fila, columna)) {
-            switch (modoActual) {
-                case EDITAR_PAREDES:
-                    laberinto.alternarCelda(fila, columna);
-                    limpiarResultado();
-                    repaint();
-                    break;
-                    
-                case PONER_INICIO:
-                    laberinto.setInicio(fila, columna);
-                    limpiarResultado();
-                    repaint();
-                    break;
-                    
-                case PONER_FIN:
-                    laberinto.setFin(fila, columna);
-                    limpiarResultado();
-                    repaint();
-                    break;
-                    
-                case NORMAL:
-                    // No hacer nada en modo normal
-                    break;
-            }
+        int fila = celda.y;
+        int columna = celda.x;
+        
+        System.out.println("Click en fila=" + fila + ", columna=" + columna + ", modo=" + modoActual);
+        
+        switch (modoActual) {
+            case EDITAR_PAREDES:
+                laberinto.alternarCelda(fila, columna);
+                limpiarResultado();
+                repaint();
+                break;
+                
+            case PONER_INICIO:
+                laberinto.setInicio(fila, columna);
+                limpiarResultado();
+                repaint();
+                break;
+                
+            case PONER_FIN:
+                laberinto.setFin(fila, columna);
+                limpiarResultado();
+                repaint();
+                break;
+                
+            case NORMAL:
+                // No hacer nada en modo normal
+                break;
         }
     }
     
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
+
         // Dibujar fondo
         dibujarFondo(g2);
-        
+
+        // Calcular offsets para centrado
+        calcularOffsets();
+
         // Obtener posición del mouse para hover effect
         Point mousePos = getMousePosition();
         Point celdaHover = null;
-        if (mousePos != null) {
+        if (mousePos != null && modoActual != ModoEdicion.NORMAL) {
             celdaHover = getCeldaEnPosicion(mousePos.x, mousePos.y);
         }
-        
-        // Dibujar el laberinto
+
+        // Dibujar el laberinto centrado
         for (int i = 0; i < laberinto.getFilas(); i++) {
             for (int j = 0; j < laberinto.getColumnas(); j++) {
-                int x = j * tamanioCelda + 20;
-                int y = i * tamanioCelda + 20;
-                
+                int x = j * tamanioCelda + offsetX;
+                int y = i * tamanioCelda + offsetY;
+
                 Celda celda = laberinto.getCelda(i, j);
                 Color color = obtenerColorCelda(celda);
-                
+
                 // Aplicar hover effect
                 boolean esHover = celdaHover != null && celdaHover.x == j && celdaHover.y == i;
-                
+
                 // Dibujar celda
                 dibujarCelda3D(g2, x, y, color, esHover, celda.equals(celdaActualAnimacion));
-                
+
                 // Dibujar símbolos
                 dibujarSimbolos(g2, celda, x, y);
             }
         }
-        
+
         // Dibujar info del modo
         dibujarInfoModo(g2);
-        
+
         // Dibujar estado de animación
         if (animacionEnProgreso) {
             dibujarEstadoAnimacion(g2);
@@ -179,8 +215,11 @@ public class PanelLaberinto extends JPanel {
         }
     }
     
+    /**
+     * CORREGIDO: Obtiene el color correcto de la celda mostrando visitadas y camino
+     */
     private Color obtenerColorCelda(Celda celda) {
-        // Prioridad de colores durante la animación
+        // Prioridad de colores
         if (celda.equals(laberinto.getInicio())) {
             return COLOR_INICIO;
         }
@@ -199,11 +238,15 @@ public class PanelLaberinto extends JPanel {
             if (celdasAnimadasVisitadas.contains(celda)) {
                 return COLOR_VISITADA;
             }
-        } else if (resultadoActual != null && resultadoActual.isEncontroSolucion()) {
-            // Resultado estático
+        }
+        
+        // Después de la animación - MANTENER LOS COLORES
+        if (!animacionEnProgreso && resultadoActual != null) {
+            // Primero verificar si está en el camino final
             if (celda.isEnCamino()) {
                 return COLOR_SOLUCION;
             }
+            // Luego verificar si fue visitada
             if (celda.isVisitada()) {
                 return COLOR_VISITADA;
             }
@@ -308,7 +351,9 @@ public class PanelLaberinto extends JPanel {
         g2.drawString(dots, getWidth() - 90, 30);
     }
     
-    // Método principal de animación
+    /**
+     * CORREGIDO: Método principal de animación que muestra visitadas y camino
+     */
     public void animarSolucion(ResultadoEjecucion resultado) {
         if (resultado == null || animacionEnProgreso) return;
         
@@ -316,22 +361,31 @@ public class PanelLaberinto extends JPanel {
         this.resultadoActual = resultado;
         animacionEnProgreso = true;
         
-        // Obtener todas las celdas visitadas
+        // Obtener todas las celdas visitadas del laberinto
         List<Celda> todasLasVisitadas = new ArrayList<>();
         for (int i = 0; i < laberinto.getFilas(); i++) {
             for (int j = 0; j < laberinto.getColumnas(); j++) {
                 Celda celda = laberinto.getCelda(i, j);
-                if (celda.isVisitada() && !celda.equals(laberinto.getInicio())) {
+                // Incluir todas las celdas visitadas excepto inicio
+                if (celda.isVisitada() && !celda.equals(laberinto.getInicio()) && !celda.equals(laberinto.getFin())) {
                     todasLasVisitadas.add(celda);
                 }
             }
         }
         
+        System.out.println("Celdas visitadas a animar: " + todasLasVisitadas.size());
+        
         // Animar celdas visitadas
         animarCeldasVisitadas(todasLasVisitadas, () -> {
             // Después de animar visitadas, animar el camino
             if (resultado.isEncontroSolucion()) {
-                animarCaminoFinal(resultado.getCamino());
+                List<Celda> caminoSinInicioFin = new ArrayList<>();
+                for (Celda c : resultado.getCamino()) {
+                    if (!c.equals(laberinto.getInicio()) && !c.equals(laberinto.getFin())) {
+                        caminoSinInicioFin.add(c);
+                    }
+                }
+                animarCaminoFinal(caminoSinInicioFin);
             } else {
                 animacionEnProgreso = false;
                 JOptionPane.showMessageDialog(this, 
@@ -342,6 +396,9 @@ public class PanelLaberinto extends JPanel {
         });
     }
     
+    /**
+     * CORREGIDO: Anima las celdas visitadas de forma eficiente
+     */
     private void animarCeldasVisitadas(List<Celda> visitadas, Runnable onComplete) {
         if (visitadas.isEmpty()) {
             onComplete.run();
@@ -349,15 +406,22 @@ public class PanelLaberinto extends JPanel {
         }
         
         final int[] indice = {0};
-        timerAnimacion = new Timer(30, null);
+        
+        // Timer más rápido para las visitadas
+        timerAnimacion = new Timer(velocidadAnimacion / 2, null);
         
         timerAnimacion.addActionListener(e -> {
             if (indice[0] < visitadas.size()) {
-                Celda celda = visitadas.get(indice[0]);
-                celdaActualAnimacion = celda;
-                celdasAnimadasVisitadas.add(celda);
+                // Animar varias celdas a la vez para mayor velocidad
+                int celdasPorFrame = Math.max(1, visitadas.size() / 50);
+                
+                for (int i = 0; i < celdasPorFrame && indice[0] < visitadas.size(); i++) {
+                    Celda celda = visitadas.get(indice[0]);
+                    celdasAnimadasVisitadas.add(celda);
+                    indice[0]++;
+                }
+                
                 repaint();
-                indice[0]++;
             } else {
                 timerAnimacion.stop();
                 celdaActualAnimacion = null;
@@ -368,14 +432,17 @@ public class PanelLaberinto extends JPanel {
         timerAnimacion.start();
     }
     
+    /**
+     * CORREGIDO: Anima el camino final y mantiene todo visible
+     */
     private void animarCaminoFinal(List<Celda> camino) {
         if (camino.isEmpty()) {
-            animacionEnProgreso = false;
+            finalizarAnimacion();
             return;
         }
         
         final int[] indice = {0};
-        Timer timerCamino = new Timer(80, null);
+        Timer timerCamino = new Timer(velocidadAnimacion * 2, null);
         
         timerCamino.addActionListener(e -> {
             if (indice[0] < camino.size()) {
@@ -386,18 +453,28 @@ public class PanelLaberinto extends JPanel {
                 indice[0]++;
             } else {
                 timerCamino.stop();
-                celdaActualAnimacion = null;
-                animacionEnProgreso = false;
-                
-                // Marcar el camino final en el modelo
-                for (Celda c : camino) {
-                    c.setEnCamino(true);
-                }
-                repaint();
+                finalizarAnimacion();
             }
         });
         
         timerCamino.start();
+    }
+    
+    /**
+     * NUEVO: Finaliza la animación y mantiene los colores
+     */
+    private void finalizarAnimacion() {
+        celdaActualAnimacion = null;
+        animacionEnProgreso = false;
+        
+        // IMPORTANTE: Mantener el estado en el modelo
+        // Las celdas ya están marcadas como visitadas y en camino
+        // Solo necesitamos repintar para mostrar el estado final
+        
+        repaint();
+        
+        System.out.println("Animación finalizada. Celdas visitadas: " + celdasAnimadasVisitadas.size() + 
+                          ", Camino: " + celdasAnimadasCamino.size());
     }
     
     public void detenerAnimacion() {
@@ -421,13 +498,27 @@ public class PanelLaberinto extends JPanel {
         repaint();
     }
     
+    /**
+     * Establece la velocidad de animación
+     * @param velocidad velocidad en milisegundos entre frames
+     */
+    public void setVelocidadAnimacion(int velocidad) {
+        this.velocidadAnimacion = velocidad;
+        // Si hay una animación en curso, actualizar el timer
+        if (timerAnimacion != null && timerAnimacion.isRunning()) {
+            timerAnimacion.setDelay(velocidad);
+        }
+    }
+    
+    /**
+     * Establece el resultado sin animación
+     */
     public void setResultado(ResultadoEjecucion resultado) {
         limpiarAnimacion();
         this.resultadoActual = resultado;
         
         if (resultado != null && resultado.isEncontroSolucion()) {
-            // Opción: animar automáticamente o mostrar resultado estático
-            // Para mostrar estático:
+            // Marcar el camino
             for (Celda c : resultado.getCamino()) {
                 c.setEnCamino(true);
             }
@@ -435,10 +526,22 @@ public class PanelLaberinto extends JPanel {
         repaint();
     }
     
+    /**
+     * CORREGIDO: Limpia completamente el resultado y los estados
+     */
     public void limpiarResultado() {
         limpiarAnimacion();
         this.resultadoActual = null;
-        laberinto.reiniciarVisitadas();
+        
+        // Limpiar estados del laberinto
+        for (int i = 0; i < laberinto.getFilas(); i++) {
+            for (int j = 0; j < laberinto.getColumnas(); j++) {
+                Celda celda = laberinto.getCelda(i, j);
+                celda.setVisitada(false);
+                celda.setEnCamino(false);
+            }
+        }
+        
         repaint();
     }
     

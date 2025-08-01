@@ -6,6 +6,7 @@ import java.util.*;
 /**
  * Implementación del algoritmo Recursivo con Backtracking mejorado
  * Incluye PROGRAMACIÓN DINÁMICA mediante memoización
+ * VERSIÓN CORREGIDA: Nombre correcto del algoritmo
  */
 public class RecursivoBacktracking implements AlgoritmoLaberinto {
     private Laberinto laberinto;
@@ -22,7 +23,7 @@ public class RecursivoBacktracking implements AlgoritmoLaberinto {
         this.laberinto = laberinto;
         this.memo = new HashMap<>();
         this.cachesUtilizados = 0;
-        this.nombre="BFS (Breadth-First Search)";
+        this.nombre = "Recursivo 4 direcciones con backtracking"; // CORRECCIÓN: Nombre correcto
     }
     
     @Override
