@@ -39,7 +39,7 @@ public class Celda {
     
     @Override
     public boolean equals(Object obj) {
-        if (this==obj) {
+        if (obj instanceof Celda) {
             Celda otra = (Celda) obj;
             return this.fila == otra.fila && this.columna == otra.columna;
         }

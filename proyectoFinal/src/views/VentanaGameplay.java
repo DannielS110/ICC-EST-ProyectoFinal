@@ -40,10 +40,10 @@ public class VentanaGameplay extends JFrame {
      */
     public VentanaGameplay(int filas, int columnas) {
         super("Resolvedor de Laberintos - Minecraft Edition");
-        this.COLOR_FONDO = new Color(139, 195, 74);
-        this.COLOR_BOTON = new Color(144, 164, 174);
-        this.COLOR_TEXTO = Color.WHITE;
-        this.COLOR_PANEL = new Color(101, 67, 33);
+        this.COLOR_FONDO= new Color(139, 195, 74);
+        this.COLOR_BOTON= new Color(144, 164, 174);
+        this.COLOR_TEXTO= Color.WHITE;
+        this.COLOR_PANEL= new Color(101, 67, 33);
         
         // Inicializar componentes con dimensiones específicas
         this.laberinto = new Laberinto(filas, columnas);
