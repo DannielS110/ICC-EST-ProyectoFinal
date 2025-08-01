@@ -2,7 +2,6 @@ package model;
 
 /**
  * Representa una celda individual del laberinto
- * VERSIÓN CORREGIDA: Con equals y hashCode correctos
  */
 public class Celda {
     private int fila;

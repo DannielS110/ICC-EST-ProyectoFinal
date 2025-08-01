@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Panel mejorado para dibujar el laberinto con estilo Minecraft y animaciones
- * VERSIÓN CORREGIDA: Mantiene todo amarillo para Recursivo 4 direcciones
+ * 
  */
 public class PanelLaberinto extends JPanel {
     private Laberinto laberinto;
@@ -219,7 +219,7 @@ public class PanelLaberinto extends JPanel {
     }
     
     /**
-     * MODIFICADO: Considera el flag mantenerTodoAmarillo
+     * Considera el flag mantenerTodoAmarillo
      */
     private Color obtenerColorCelda(Celda celda) {
         // Prioridad de colores
@@ -387,7 +387,7 @@ public class PanelLaberinto extends JPanel {
     }
     
     /**
-     * MODIFICADO: Detecta si es Recursivo 4 direcciones para el comportamiento especial
+     * Detecta si es Recursivo 4 direcciones para el comportamiento especial
      */
     public void animarSolucion(ResultadoEjecucion resultado) {
         if (resultado == null || animacionEnProgreso) return;
@@ -443,7 +443,7 @@ public class PanelLaberinto extends JPanel {
     }
 
     /**
-     * MODIFICADO: Anima el camino final y para Recursivo 4 direcciones pinta todo amarillo
+     * Anima el camino final y para Recursivo 4 direcciones pinta todo amarillo
      */
     private void animarCaminoFinal(List<Celda> camino) {
         if (camino.isEmpty()) {
@@ -465,7 +465,7 @@ public class PanelLaberinto extends JPanel {
             } else {
                 timerCamino.stop();
                 
-                // MODIFICADO: Para Recursivo 4 direcciones, pintar TODO de amarillo
+                // MODIFICADO: Para Recursivo 4 direcciones, pintar todo de amarillo
                 if (resultadoActual != null && 
                     resultadoActual.getNombreAlgoritmo().equals("Recursivo 4 direcciones")) {
                     
@@ -475,7 +475,7 @@ public class PanelLaberinto extends JPanel {
                         celdasAnimadasCamino.addAll(celdasAnimadasVisitadas);
                         celdasAnimadasVisitadas.clear();
                         
-                        // IMPORTANTE: Establecer el flag para mantener todo amarillo
+                        // Establecer el flag para mantener todo amarillo
                         mantenerTodoAmarillo = true;
                         
                         repaint();
@@ -497,7 +497,7 @@ public class PanelLaberinto extends JPanel {
     }
     
     /**
-     * MODIFICADO: Mantiene el estado especial para Recursivo 4 direcciones
+     * Mantiene el estado especial para Recursivo 4 direcciones
      */
     private void finalizarAnimacion() {
         celdaActualAnimacion = null;
@@ -525,7 +525,7 @@ public class PanelLaberinto extends JPanel {
         celdasAnimadasVisitadas.clear();
         celdasAnimadasCamino.clear();
         celdaActualAnimacion = null;
-        // NUEVO: Limpiar el flag
+        // Limpiar el flag
         mantenerTodoAmarillo = false;
     }
     
@@ -545,7 +545,7 @@ public class PanelLaberinto extends JPanel {
         limpiarAnimacion();
         this.resultadoActual = resultado;
         
-        // NUEVO: Si es Recursivo 4 direcciones, activar el flag
+        // Si es Recursivo 4 direcciones, activar el flag
         if (resultado != null && 
             resultado.getNombreAlgoritmo().equals("Recursivo 4 direcciones") &&
             resultado.isEncontroSolucion()) {
@@ -556,7 +556,7 @@ public class PanelLaberinto extends JPanel {
     }
     
     /**
-     * MODIFICADO: Limpia también el flag especial
+     * Limpia también el flag especial
      */
     public void limpiarResultado() {
         limpiarAnimacion();

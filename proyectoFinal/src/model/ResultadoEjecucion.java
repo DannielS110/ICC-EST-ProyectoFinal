@@ -115,9 +115,7 @@ public class ResultadoEjecucion {
     public void setOrdenVisitas(List<Celda> ordenVisitas) { this.ordenVisitas = ordenVisitas; }
     
     public List<Celda> getOrdenVisitas() { return ordenVisitas; }
-    /**
-     * Genera un resumen de las métricas para debugging
-     */
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

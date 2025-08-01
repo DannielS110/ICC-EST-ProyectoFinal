@@ -4,8 +4,8 @@ import model.*;
 import java.util.*;
 
 /**
- * DFS - Se lanza al abismo sin mirar atrás
- * "Como una aguja que perfora"
+ * DFS - Búsqueda en profundidad
+ * Explora profundamente antes de retroceder
  */
 public class DFS implements AlgoritmoLaberinto {
     private Laberinto laberinto;
@@ -66,7 +66,6 @@ public class DFS implements AlgoritmoLaberinto {
     private void buscarDFS(Celda actual, Celda fin, List<Celda> caminoActual) {
         if (encontrado) return;
 
-        // Marcar como visitada (cicatriz gris)
         actual.setVisitada(true);
         celdasVisitadas++;
         caminoActual.add(actual);
@@ -86,7 +85,6 @@ public class DFS implements AlgoritmoLaberinto {
             if (encontrado) return;
         }
 
-        // Backtrack (pero la cicatriz gris permanece)
         caminoActual.remove(caminoActual.size() - 1);
     }
 }

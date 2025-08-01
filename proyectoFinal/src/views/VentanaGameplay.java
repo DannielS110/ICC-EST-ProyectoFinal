@@ -12,7 +12,6 @@ import java.util.List;
 
 /**
  * Ventana principal del juego con estilo Minecraft mejorada
- * VERSIÓN FINAL COMPLETA CON TODAS LAS CORRECCIONES
  */
 public class VentanaGameplay extends JFrame {
     private Laberinto laberinto;

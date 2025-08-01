@@ -4,8 +4,8 @@ import model.*;
 import java.util.*;
 
 /**
- * Implementación del algoritmo Recursivo con Backtracking mejorado
- * VERSIÓN CORREGIDA: Muestra todas las celdas visitadas
+ * Implementación del algoritmo Recursivo con Backtracking
+ * Muestra todas las celdas visitadas
  */
 public class RecursivoBacktracking implements AlgoritmoLaberinto {
     private Laberinto laberinto;

@@ -12,7 +12,6 @@ import org.jfree.chart.axis.*;
 
 /**
  * Ventana para mostrar gráficos estadísticos de los algoritmos
- * Versión corregida sin dependencias problemáticas
  */
 public class VentanaGraficos extends JDialog {
     private List<ResultadoEjecucion> resultados;

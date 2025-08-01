@@ -4,8 +4,8 @@ import model.*;
 import java.util.*;
 
 /**
- * BFS - Explora en ondas concéntricas desde el inicio
- * "Como si me respiraran en círculos"
+ * BFS - Búsqueda en amplitud
+ * Explora todos los vecinos antes de profundizar
  */
 public class BFS implements AlgoritmoLaberinto {
     private Laberinto laberinto;
@@ -56,7 +56,6 @@ public class BFS implements AlgoritmoLaberinto {
                 break;
             }
 
-            // Explorar todos los vecinos (expansión en ondas)
             List<Celda> vecinos = laberinto.getVecinosNoVisitados(actual);
 
             for (Celda vecino : vecinos) {

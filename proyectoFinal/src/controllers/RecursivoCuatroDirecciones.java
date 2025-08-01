@@ -4,9 +4,9 @@ import model.*;
 import java.util.*;
 
 /**
- * Recursivo 4 direcciones - Versión pedagógica
+ * Recursivo 4 direcciones
  * Primero muestra las visitadas en gris, luego el camino en amarillo,
- * y finalmente pinta TODO de amarillo
+ * y finalmente pinta todo de amarillo
  */
 public class RecursivoCuatroDirecciones implements AlgoritmoLaberinto {
     private Laberinto laberinto;

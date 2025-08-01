@@ -6,7 +6,6 @@ import java.util.Random;
 
 /**
  * Clase que representa el laberinto completo
- * VERSIÓN CORREGIDA: Garantiza que siempre hay solución
  */
 public class Laberinto {
     private Celda[][] matriz;
@@ -72,7 +71,7 @@ public class Laberinto {
         // Generar laberinto usando algoritmo recursivo
         generarLaberintoRecursivo(0, 0);
         
-        // IMPORTANTE: Asegurar que inicio y fin NO sean paredes
+        // Asegurar que inicio y fin NO sean paredes
         inicio.setPared(false);
         fin.setPared(false);
         

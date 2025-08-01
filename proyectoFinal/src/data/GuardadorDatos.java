@@ -7,7 +7,6 @@ import java.util.*;
 
 /**
  * Clase para guardar y leer resultados de algoritmos en CSV
- * VERSIÓN CORREGIDA: Actualiza registros del mismo algoritmo y dimensiones
  */
 public class GuardadorDatos {
     private String archivoName;

@@ -18,8 +18,8 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 
 /**
- * Ventana que muestra estadísticas históricas desde el CSV
- * Versión completa con gráficos integrados y validaciones
+ * Ventana que muestra estadísticas desde el CSV
+ * 
  */
 public class VentanaEstadisticas extends JDialog {
     private GuardadorDatos guardador;

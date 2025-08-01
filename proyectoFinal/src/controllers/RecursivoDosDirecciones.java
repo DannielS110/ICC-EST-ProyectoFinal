@@ -4,8 +4,8 @@ import model.*;
 import java.util.*;
 
 /**
- * Recursivo 2 direcciones - Rígido y metódico
- * "Solo derecha y abajo, lo justo y necesario"
+ * Recursivo 2 direcciones
+ * "Solo derecha y abajo"
  */
 public class RecursivoDosDirecciones implements AlgoritmoLaberinto {
     private Laberinto laberinto;
