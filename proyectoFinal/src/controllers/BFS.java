@@ -11,22 +11,23 @@ public class BFS implements AlgoritmoLaberinto {
     private Laberinto laberinto;
     private Map<Celda, Celda> padres;
     private int celdasVisitadas;
-    private final String NOMBRE = "BFS (Breadth-First Search)";
+    private String nombre;
     
     public BFS(Laberinto laberinto) {
         this.laberinto = laberinto;
         this.padres = new HashMap<>();
         this.celdasVisitadas = 0;
+        this.nombre="BFS (Breadth-First Search)";
     }
     
     @Override
     public String getNombre() {
-        return NOMBRE;
+        return nombre;
     }
     
     @Override
     public ResultadoEjecucion resolver() {
-        ResultadoEjecucion resultado = new ResultadoEjecucion(NOMBRE);
+        ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
         long tiempoInicio = System.nanoTime(); // CAMBIO: usar nanoTime
         
         laberinto.reiniciarVisitadas();

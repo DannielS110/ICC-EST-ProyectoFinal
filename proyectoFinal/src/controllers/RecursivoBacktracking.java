@@ -16,18 +16,18 @@ public class RecursivoBacktracking implements AlgoritmoLaberinto {
     // PROGRAMACIÓN DINÁMICA: Cache para memoización
     private Map<String, Integer> memo;
     private int cachesUtilizados;
-    
-    private final String NOMBRE = "Recursivo 4 direcciones con backtracking";
+    private String nombre;
     
     public RecursivoBacktracking(Laberinto laberinto) {
         this.laberinto = laberinto;
         this.memo = new HashMap<>();
         this.cachesUtilizados = 0;
+        this.nombre="BFS (Breadth-First Search)";
     }
     
     @Override
     public String getNombre() {
-        return NOMBRE;
+        return nombre;
     }
     
     private String generarClave(int fila, int col, Celda destino) {
@@ -36,7 +36,7 @@ public class RecursivoBacktracking implements AlgoritmoLaberinto {
     
     @Override
     public ResultadoEjecucion resolver() {
-        ResultadoEjecucion resultado = new ResultadoEjecucion(NOMBRE);
+        ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
         long tiempoInicio = System.nanoTime();
         
         // Reiniciar variables

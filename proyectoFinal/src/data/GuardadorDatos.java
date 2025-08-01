@@ -10,11 +10,11 @@ import java.util.*;
  * Versión mejorada que evita duplicados por algoritmo y dimensiones
  */
 public class GuardadorDatos {
-    private static final String ARCHIVO = "resultados_laberinto.csv";
-    private static final String SEPARADOR = ",";
-    private static int contadorID = 1;
+    private String archivoName;
+    private int contadorID = 1;
     
     public GuardadorDatos() {
+        this.archivoName="resultados_laberinto.csv";
         // Leer el archivo existente para obtener el último ID
         List<String[]> registros = leerTodos();
         if (!registros.isEmpty()) {
@@ -64,7 +64,7 @@ public class GuardadorDatos {
      */
     public List<String[]> leerTodos() {
         List<String[]> registros = new ArrayList<>();
-        File archivo = new File(ARCHIVO);
+        File archivo = new File(archivoName);
         
         if (!archivo.exists()) {
             return registros;
@@ -80,7 +80,7 @@ public class GuardadorDatos {
                     continue; // Saltar encabezados
                 }
                 
-                String[] datos = linea.split(SEPARADOR);
+                String[] datos = linea.split(",");
                 if (datos.length >= 8) { // Mínimo 8 columnas
                     registros.add(datos);
                 }
@@ -96,7 +96,7 @@ public class GuardadorDatos {
      * Verifica si hay registros guardados
      */
     public boolean hayRegistros() {
-        File archivo = new File(ARCHIVO);
+        File archivo = new File(archivoName);
         if (!archivo.exists()) {
             return false;
         }
@@ -134,7 +134,7 @@ public class GuardadorDatos {
      * Elimina todos los registros
      */
     public void limpiarRegistros() {
-        File archivo = new File(ARCHIVO);
+        File archivo = new File(archivoName);
         if (archivo.exists()) {
             archivo.delete();
         }
@@ -161,13 +161,13 @@ public class GuardadorDatos {
     }
     
     private void escribirTodos(List<String[]> registros) {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(ARCHIVO))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(archivoName))) {
             // Escribir encabezados
             pw.println("ID,Algoritmo,Filas,Columnas,Tiempo(ns),CeldasVisitadas,LongitudCamino,Resuelto,UsoPD,CachesUsados,Fecha");
             
             // Escribir datos
             for (String[] registro : registros) {
-                pw.println(String.join(SEPARADOR, registro));
+                pw.println(String.join(",", registro));
             }
         } catch (IOException e) {
             System.err.println("Error al escribir resultados: " + e.getMessage());
