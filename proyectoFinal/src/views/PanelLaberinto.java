@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Panel mejorado para dibujar el laberinto con estilo Minecraft y animaciones
- * VERSIÓN FINAL CORREGIDA: Animación correcta y persistencia de colores
+ * VERSIÓN CORREGIDA: Mantiene todo amarillo para Recursivo 4 direcciones
  */
 public class PanelLaberinto extends JPanel {
     private Laberinto laberinto;
@@ -29,6 +29,9 @@ public class PanelLaberinto extends JPanel {
     private Celda celdaActualAnimacion = null;
     private Timer timerAnimacion;
     private boolean animacionEnProgreso = false;
+    
+    // NUEVO: Flag para mantener todo amarillo en Recursivo 4 direcciones
+    private boolean mantenerTodoAmarillo = false;
     
     // Colores estilo Minecraft mejorados
     private final Color COLOR_PARED = new Color(139, 69, 19);
@@ -216,7 +219,7 @@ public class PanelLaberinto extends JPanel {
     }
     
     /**
-     * CORREGIDO: Obtiene el color correcto de la celda mostrando visitadas y camino
+     * MODIFICADO: Considera el flag mantenerTodoAmarillo
      */
     private Color obtenerColorCelda(Celda celda) {
         // Prioridad de colores
@@ -227,7 +230,7 @@ public class PanelLaberinto extends JPanel {
             return COLOR_FIN;
         }
         
-        // Durante la animación
+        // Durante la animación - usar las listas de animación
         if (animacionEnProgreso) {
             if (celda.equals(celdaActualAnimacion)) {
                 return COLOR_EVALUANDO;
@@ -238,17 +241,49 @@ public class PanelLaberinto extends JPanel {
             if (celdasAnimadasVisitadas.contains(celda)) {
                 return COLOR_VISITADA;
             }
-        }
-        
-        // Después de la animación - MANTENER LOS COLORES
-        if (!animacionEnProgreso && resultadoActual != null) {
-            // Primero verificar si está en el camino final
-            if (celda.isEnCamino()) {
-                return COLOR_SOLUCION;
-            }
-            // Luego verificar si fue visitada
-            if (celda.isVisitada()) {
-                return COLOR_VISITADA;
+        } else if (!animacionEnProgreso && resultadoActual != null) {
+            // NUEVO: Si es Recursivo 4 direcciones y debemos mantener todo amarillo
+            if (mantenerTodoAmarillo) {
+                // Verificar si fue visitada
+                if (resultadoActual.getOrdenVisitas() != null) {
+                    for (Celda visitada : resultadoActual.getOrdenVisitas()) {
+                        if (visitada.getFila() == celda.getFila() && 
+                            visitada.getColumna() == celda.getColumna()) {
+                            return COLOR_SOLUCION; // Todo amarillo
+                        }
+                    }
+                }
+            } else {
+                // Comportamiento normal para otros algoritmos
+                boolean fueVisitada = false;
+                boolean estaEnCamino = false;
+                
+                if (resultadoActual.getOrdenVisitas() != null) {
+                    for (Celda visitada : resultadoActual.getOrdenVisitas()) {
+                        if (visitada.getFila() == celda.getFila() && 
+                            visitada.getColumna() == celda.getColumna()) {
+                            fueVisitada = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (resultadoActual.getCamino() != null) {
+                    for (Celda enCamino : resultadoActual.getCamino()) {
+                        if (enCamino.getFila() == celda.getFila() && 
+                            enCamino.getColumna() == celda.getColumna()) {
+                            estaEnCamino = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (estaEnCamino) {
+                    return COLOR_SOLUCION;
+                }
+                if (fueVisitada) {
+                    return COLOR_VISITADA;
+                }
             }
         }
         
@@ -351,31 +386,43 @@ public class PanelLaberinto extends JPanel {
         g2.drawString(dots, getWidth() - 90, 30);
     }
     
+    /**
+     * MODIFICADO: Detecta si es Recursivo 4 direcciones para el comportamiento especial
+     */
     public void animarSolucion(ResultadoEjecucion resultado) {
         if (resultado == null || animacionEnProgreso) return;
+        
         limpiarAnimacion();
         this.resultadoActual = resultado;
         animacionEnProgreso = true;
+        
+        // NUEVO: Resetear el flag
+        mantenerTodoAmarillo = false;
 
         // Obtener orden de celdas visitadas
-        List<Celda> ordenVisitasTmp = resultado.getOrdenVisitas();
-        final List<Celda> ordenVisitas = (ordenVisitasTmp == null) ? new ArrayList<>() : ordenVisitasTmp;
+        List<Celda> ordenVisitas = resultado.getOrdenVisitas();
+        if (ordenVisitas == null) {
+            ordenVisitas = new ArrayList<>();
+        }
 
+        final List<Celda> visitasFinal = ordenVisitas;
         final int[] indice = {0};
+        
         timerAnimacion = new Timer(velocidadAnimacion, null);
 
         timerAnimacion.addActionListener(e -> {
-            if (indice[0] < ordenVisitas.size()) {
-                Celda celda = ordenVisitas.get(indice[0]);
+            if (indice[0] < visitasFinal.size()) {
+                Celda celda = visitasFinal.get(indice[0]);
                 celdasAnimadasVisitadas.add(celda);
-                celdaActualAnimacion = celda; // Nuevo: para destacar la celda actual si quieres efecto
+                celdaActualAnimacion = celda;
                 repaint();
                 indice[0]++;
             } else {
                 timerAnimacion.stop();
                 celdaActualAnimacion = null;
-                // Cuando termina de pintar visitadas, ahora pinta el camino de solución en amarillo
-                if (resultado.isEncontroSolucion()) {
+                
+                // Animar el camino final si se encontró solución
+                if (resultado.isEncontroSolucion() && resultado.getCamino() != null) {
                     List<Celda> caminoSinInicioFin = new ArrayList<>();
                     for (Celda c : resultado.getCamino()) {
                         if (!c.equals(laberinto.getInicio()) && !c.equals(laberinto.getFin())) {
@@ -384,7 +431,7 @@ public class PanelLaberinto extends JPanel {
                     }
                     animarCaminoFinal(caminoSinInicioFin);
                 } else {
-                    animacionEnProgreso = false;
+                    finalizarAnimacion();
                     JOptionPane.showMessageDialog(this, 
                         "No se encontró solución", 
                         "Sin solución", 
@@ -395,12 +442,8 @@ public class PanelLaberinto extends JPanel {
         timerAnimacion.start();
     }
 
-
-
     /**
-     * Ahora solo animamos el camino sobre las visitadas,
-     * opcionalmente puedes eliminar la celda del camino de las visitadas para
-     * que solo se vea dorada
+     * MODIFICADO: Anima el camino final y para Recursivo 4 direcciones pinta todo amarillo
      */
     private void animarCaminoFinal(List<Celda> camino) {
         if (camino.isEmpty()) {
@@ -416,28 +459,51 @@ public class PanelLaberinto extends JPanel {
                 Celda celda = camino.get(indice[0]);
                 celdaActualAnimacion = celda;
                 celdasAnimadasCamino.add(celda);
-                // Opcional: quitar de visitadas si quieres que sea SOLO dorado
                 celdasAnimadasVisitadas.remove(celda);
                 repaint();
                 indice[0]++;
             } else {
                 timerCamino.stop();
-                finalizarAnimacion();
+                
+                // MODIFICADO: Para Recursivo 4 direcciones, pintar TODO de amarillo
+                if (resultadoActual != null && 
+                    resultadoActual.getNombreAlgoritmo().equals("Recursivo 4 direcciones")) {
+                    
+                    // Pequeña pausa antes de pintar todo
+                    Timer timerFinal = new Timer(500, ev -> {
+                        // Mover todas las visitadas al camino
+                        celdasAnimadasCamino.addAll(celdasAnimadasVisitadas);
+                        celdasAnimadasVisitadas.clear();
+                        
+                        // IMPORTANTE: Establecer el flag para mantener todo amarillo
+                        mantenerTodoAmarillo = true;
+                        
+                        repaint();
+                        
+                        // Finalizar después de un momento
+                        Timer timerFin = new Timer(1000, evt -> finalizarAnimacion());
+                        timerFin.setRepeats(false);
+                        timerFin.start();
+                    });
+                    timerFinal.setRepeats(false);
+                    timerFinal.start();
+                } else {
+                    finalizarAnimacion();
+                }
             }
         });
         
         timerCamino.start();
     }
+    
     /**
-     * NUEVO: Finaliza la animación y mantiene los colores
+     * MODIFICADO: Mantiene el estado especial para Recursivo 4 direcciones
      */
     private void finalizarAnimacion() {
         celdaActualAnimacion = null;
         animacionEnProgreso = false;
         
-        // IMPORTANTE: Mantener el estado en el modelo
-        // Las celdas ya están marcadas como visitadas y en camino
-        // Solo necesitamos repintar para mostrar el estado final
+        // El flag mantenerTodoAmarillo se mantiene si es Recursivo 4 direcciones
         
         repaint();
         
@@ -459,6 +525,8 @@ public class PanelLaberinto extends JPanel {
         celdasAnimadasVisitadas.clear();
         celdasAnimadasCamino.clear();
         celdaActualAnimacion = null;
+        // NUEVO: Limpiar el flag
+        mantenerTodoAmarillo = false;
     }
     
     public void setModoEdicion(ModoEdicion modo) {
@@ -466,40 +534,34 @@ public class PanelLaberinto extends JPanel {
         repaint();
     }
     
-    /**
-     * Establece la velocidad de animación
-     * @param velocidad velocidad en milisegundos entre frames
-     */
     public void setVelocidadAnimacion(int velocidad) {
         this.velocidadAnimacion = velocidad;
-        // Si hay una animación en curso, actualizar el timer
         if (timerAnimacion != null && timerAnimacion.isRunning()) {
             timerAnimacion.setDelay(velocidad);
         }
     }
     
-    /**
-     * Establece el resultado sin animación
-     */
     public void setResultado(ResultadoEjecucion resultado) {
         limpiarAnimacion();
         this.resultadoActual = resultado;
         
-        if (resultado != null && resultado.isEncontroSolucion()) {
-            // Marcar el camino
-            for (Celda c : resultado.getCamino()) {
-                c.setEnCamino(true);
-            }
+        // NUEVO: Si es Recursivo 4 direcciones, activar el flag
+        if (resultado != null && 
+            resultado.getNombreAlgoritmo().equals("Recursivo 4 direcciones") &&
+            resultado.isEncontroSolucion()) {
+            mantenerTodoAmarillo = true;
         }
+        
         repaint();
     }
     
     /**
-     * CORREGIDO: Limpia completamente el resultado y los estados
+     * MODIFICADO: Limpia también el flag especial
      */
     public void limpiarResultado() {
         limpiarAnimacion();
         this.resultadoActual = null;
+        mantenerTodoAmarillo = false;
         
         // Limpiar estados del laberinto
         for (int i = 0; i < laberinto.getFilas(); i++) {

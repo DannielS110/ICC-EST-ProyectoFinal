@@ -2,6 +2,7 @@ package model;
 
 /**
  * Representa una celda individual del laberinto
+ * VERSIÓN CORREGIDA: Con equals y hashCode correctos
  */
 public class Celda {
     private int fila;
@@ -39,11 +40,15 @@ public class Celda {
     
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Celda) {
-            Celda otra = (Celda) obj;
-            return this.fila == otra.fila && this.columna == otra.columna;
-        }
-        return false;
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Celda otra = (Celda) obj;
+        return this.fila == otra.fila && this.columna == otra.columna;
+    }
+    
+    @Override
+    public int hashCode() {
+        return 31 * fila + columna;
     }
     
     @Override

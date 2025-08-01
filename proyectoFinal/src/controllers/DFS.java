@@ -4,22 +4,22 @@ import model.*;
 import java.util.*;
 
 /**
- * Implementación del algoritmo DFS (Búsqueda en Profundidad)
- * VERSIÓN ANIMADA: Guarda el orden real de visita de las celdas
+ * DFS - Se lanza al abismo sin mirar atrás
+ * "Como una aguja que perfora"
  */
 public class DFS implements AlgoritmoLaberinto {
     private Laberinto laberinto;
-    private Map<Celda, Celda> padres;
     private int celdasVisitadas;
     private String nombre;
-    private List<Celda> ordenVisitas; // NUEVO
+    private List<Celda> ordenVisitas;
+    private List<Celda> caminoFinal;
+    private boolean encontrado;
 
     public DFS(Laberinto laberinto) {
         this.laberinto = laberinto;
-        this.padres = new HashMap<>();
         this.celdasVisitadas = 0;
         this.nombre = "DFS (Depth-First Search)";
-        this.ordenVisitas = new ArrayList<>(); // NUEVO
+        this.ordenVisitas = new ArrayList<>();
     }
 
     @Override
@@ -33,55 +33,29 @@ public class DFS implements AlgoritmoLaberinto {
         long tiempoInicio = System.nanoTime();
 
         laberinto.reiniciarVisitadas();
-        padres.clear();
         celdasVisitadas = 0;
-        ordenVisitas.clear(); // NUEVO
+        ordenVisitas.clear();
+        caminoFinal = null;
+        encontrado = false;
 
-        Stack<Celda> pila = new Stack<>();
         Celda inicio = laberinto.getInicio();
         Celda fin = laberinto.getFin();
 
-        pila.push(inicio);
-        inicio.setVisitada(true);
-        celdasVisitadas++;
-        ordenVisitas.add(inicio); // NUEVO
+        // Iniciar búsqueda profunda
+        List<Celda> caminoActual = new ArrayList<>();
+        buscarDFS(inicio, fin, caminoActual);
 
-        boolean encontrado = false;
-        Celda nodoFinal = null;
-
-        while (!pila.isEmpty() && !encontrado) {
-            Celda actual = pila.pop();
-
-            if (actual.equals(fin)) {
-                encontrado = true;
-                nodoFinal = actual;
-                break;
-            }
-
-            List<Celda> vecinos = laberinto.getVecinosNoVisitados(actual);
-
-            for (int i = vecinos.size() - 1; i >= 0; i--) {
-                Celda vecino = vecinos.get(i);
-                vecino.setVisitada(true);
-                celdasVisitadas++;
-                padres.put(vecino, actual);
-                pila.push(vecino);
-                ordenVisitas.add(vecino); // NUEVO
-            }
-        }
-
-        if (encontrado && nodoFinal != null) {
-            List<Celda> camino = reconstruirCamino(nodoFinal);
-            resultado.setCamino(camino);
+        if (caminoFinal != null) {
+            resultado.setCamino(caminoFinal);
             resultado.setEncontroSolucion(true);
 
-            for (Celda celda : camino) {
+            for (Celda celda : caminoFinal) {
                 celda.setEnCamino(true);
             }
         }
 
         resultado.setCeldasVisitadas(celdasVisitadas);
-        resultado.setOrdenVisitas(new ArrayList<>(ordenVisitas)); // NUEVO
+        resultado.setOrdenVisitas(new ArrayList<>(ordenVisitas));
 
         long tiempoNs = System.nanoTime() - tiempoInicio;
         resultado.setTiempoEjecucionNs(tiempoNs);
@@ -89,15 +63,30 @@ public class DFS implements AlgoritmoLaberinto {
         return resultado;
     }
 
-    private List<Celda> reconstruirCamino(Celda fin) {
-        List<Celda> camino = new ArrayList<>();
-        Celda actual = fin;
+    private void buscarDFS(Celda actual, Celda fin, List<Celda> caminoActual) {
+        if (encontrado) return;
 
-        while (actual != null) {
-            camino.add(0, actual);
-            actual = padres.get(actual);
+        // Marcar como visitada (cicatriz gris)
+        actual.setVisitada(true);
+        celdasVisitadas++;
+        caminoActual.add(actual);
+        ordenVisitas.add(actual);
+
+        // Si llegamos al fin
+        if (actual.equals(fin)) {
+            encontrado = true;
+            caminoFinal = new ArrayList<>(caminoActual);
+            return;
         }
 
-        return camino;
+        // Explorar vecinos profundamente
+        List<Celda> vecinos = laberinto.getVecinosNoVisitados(actual);
+        for (Celda vecino : vecinos) {
+            buscarDFS(vecino, fin, caminoActual);
+            if (encontrado) return;
+        }
+
+        // Backtrack (pero la cicatriz gris permanece)
+        caminoActual.remove(caminoActual.size() - 1);
     }
 }

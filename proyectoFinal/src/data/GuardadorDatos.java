@@ -7,14 +7,14 @@ import java.util.*;
 
 /**
  * Clase para guardar y leer resultados de algoritmos en CSV
- * Versión mejorada que evita duplicados por algoritmo y dimensiones
+ * VERSIÓN CORREGIDA: Actualiza registros del mismo algoritmo y dimensiones
  */
 public class GuardadorDatos {
     private String archivoName;
     private int contadorID = 1;
     
     public GuardadorDatos() {
-        this.archivoName="resultados_laberinto.csv";
+        this.archivoName = "resultados_laberinto.csv";
         // Leer el archivo existente para obtener el último ID
         List<String[]> registros = leerTodos();
         if (!registros.isEmpty()) {
@@ -29,7 +29,7 @@ public class GuardadorDatos {
     
     /**
      * Guarda o actualiza un resultado en el archivo CSV
-     * MEJORADO: Actualiza el registro si ya existe uno con el mismo algoritmo Y dimensiones
+     * Si existe un registro con el mismo algoritmo Y dimensiones, lo actualiza
      */
     public void guardarResultado(ResultadoEjecucion resultado, int filas, int columnas) {
         List<String[]> registros = leerTodos();
@@ -43,8 +43,9 @@ public class GuardadorDatos {
                 registro[2].equals(String.valueOf(filas)) &&
                 registro[3].equals(String.valueOf(columnas))) {
                 
-                // Actualizar el registro existente
-                registros.set(i, crearRegistro(registro[0], resultado, filas, columnas));
+                // Mantener el ID original pero actualizar el resto
+                String idOriginal = registro[0];
+                registros.set(i, crearRegistro(idOriginal, resultado, filas, columnas));
                 actualizado = true;
                 break;
             }

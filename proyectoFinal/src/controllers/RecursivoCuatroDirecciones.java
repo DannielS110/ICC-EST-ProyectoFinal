@@ -4,106 +4,126 @@ import model.*;
 import java.util.*;
 
 /**
- * Implementación del algoritmo Recursivo con 4 direcciones
- * Ahora guarda el orden real de visita para animaciones.
+ * Recursivo 4 direcciones - Versión pedagógica
+ * Primero muestra las visitadas en gris, luego el camino en amarillo,
+ * y finalmente pinta TODO de amarillo
  */
 public class RecursivoCuatroDirecciones implements AlgoritmoLaberinto {
     private Laberinto laberinto;
     private List<Celda> caminoActual;
-    private List<Celda> mejorCamino;
+    private List<Celda> caminoFinal;
     private int celdasVisitadas;
     private boolean encontrado;
     private String nombre;
-
-    // NUEVO: orden real de visita
     private List<Celda> ordenVisitas;
-
+    private Set<Celda> todasLasVisitadas;
+    
     public RecursivoCuatroDirecciones(Laberinto laberinto) {
         this.laberinto = laberinto;
         this.nombre = "Recursivo 4 direcciones";
-        this.ordenVisitas = new ArrayList<>(); // NUEVO
+        this.ordenVisitas = new ArrayList<>();
+        this.todasLasVisitadas = new HashSet<>();
     }
-
+    
     @Override
     public String getNombre() {
         return nombre;
     }
-
+    
     @Override
     public ResultadoEjecucion resolver() {
         ResultadoEjecucion resultado = new ResultadoEjecucion(nombre);
         long tiempoInicio = System.nanoTime();
-
+        
         // Reiniciar variables
         laberinto.reiniciarVisitadas();
         caminoActual = new ArrayList<>();
-        mejorCamino = null;
+        caminoFinal = null;
         celdasVisitadas = 0;
         encontrado = false;
-        ordenVisitas.clear(); // NUEVO
-
+        ordenVisitas.clear();
+        todasLasVisitadas.clear();
+        
         Celda inicio = laberinto.getInicio();
         Celda fin = laberinto.getFin();
-
-        // Iniciar búsqueda recursiva
+        
+        // Buscar recursivamente
         buscarRecursivo(inicio, fin);
-
+        
+        // Marcar todas las celdas visitadas
+        for (Celda celda : todasLasVisitadas) {
+            celda.setVisitada(true);
+        }
+        
         // Establecer resultados
-        if (mejorCamino != null) {
-            resultado.setCamino(new ArrayList<>(mejorCamino));
+        if (caminoFinal != null) {
+            resultado.setCamino(new ArrayList<>(caminoFinal));
             resultado.setEncontroSolucion(true);
-
-            for (Celda celda : mejorCamino) {
+            
+            // Marcar el camino
+            for (Celda celda : caminoFinal) {
                 celda.setEnCamino(true);
             }
         }
-
+        
         resultado.setCeldasVisitadas(celdasVisitadas);
-        resultado.setOrdenVisitas(new ArrayList<>(ordenVisitas)); // NUEVO
-
+        resultado.setOrdenVisitas(new ArrayList<>(ordenVisitas));
+        
         long tiempoNs = System.nanoTime() - tiempoInicio;
         resultado.setTiempoEjecucionNs(tiempoNs);
-
+        
         return resultado;
     }
-
-    private void buscarRecursivo(Celda actual, Celda fin) {
+    
+    private boolean buscarRecursivo(Celda actual, Celda fin) {
+        // Si ya encontramos el camino, no seguir buscando
         if (encontrado) {
-            return;
+            return true;
         }
-
-        // Marcar como visitada y agregar al camino y a la animación
+        
+        // Marcar como visitada temporalmente
         actual.setVisitada(true);
-        ordenVisitas.add(actual); // NUEVO
-        celdasVisitadas++;
         caminoActual.add(actual);
-
+        
+        // Registrar en la lista de visitadas si es primera vez
+        if (!todasLasVisitadas.contains(actual)) {
+            celdasVisitadas++;
+            ordenVisitas.add(actual);
+            todasLasVisitadas.add(actual);
+        }
+        
+        // Verificar si llegamos al fin
         if (actual.equals(fin)) {
             encontrado = true;
-            mejorCamino = new ArrayList<>(caminoActual);
-            return;
+            caminoFinal = new ArrayList<>(caminoActual);
+            return true;
         }
-
-        int filaActual = actual.getFila();
-        int colActual = actual.getColumna();
+        
+        // Explorar en 4 direcciones
+        int fila = actual.getFila();
+        int col = actual.getColumna();
+        
+        // Direcciones: arriba, derecha, abajo, izquierda
         int[] dirFilas = {-1, 0, 1, 0};
-        int[] dirColumnas = {0, 1, 0, -1};
-
+        int[] dirCols = {0, 1, 0, -1};
+        
         for (int i = 0; i < 4; i++) {
-            int nuevaFila = filaActual + dirFilas[i];
-            int nuevaCol = colActual + dirColumnas[i];
-
+            int nuevaFila = fila + dirFilas[i];
+            int nuevaCol = col + dirCols[i];
+            
             if (laberinto.esCaminoLibre(nuevaFila, nuevaCol)) {
                 Celda vecino = laberinto.getCelda(nuevaFila, nuevaCol);
                 if (!vecino.isVisitada()) {
-                    buscarRecursivo(vecino, fin);
+                    if (buscarRecursivo(vecino, fin)) {
+                        return true;
+                    }
                 }
             }
         }
-
-        // Backtrack: quitar del camino actual si no encontramos solución
-        if (!encontrado) {
-            caminoActual.remove(caminoActual.size() - 1);
-        }
+        
+        // Backtrack
+        caminoActual.remove(caminoActual.size() - 1);
+        actual.setVisitada(false);
+        return false;
     }
 }
