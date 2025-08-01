@@ -15,6 +15,7 @@ import org.jfree.chart.renderer.category.*;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.NumberAxis;
 
 /**
  * Ventana que muestra estadísticas históricas desde el CSV
@@ -238,14 +239,25 @@ public class VentanaEstadisticas extends JDialog {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
         // Agrupar por algoritmo y calcular promedio
+        Map<String, Double> sumaTiempos = new HashMap<>();
+        Map<String, Integer> contadores = new HashMap<>();
+        
         for (String[] registro : registros) {
             String algoritmo = registro[1];
             double tiempoMs = Long.parseLong(registro[4]) / 1_000_000.0; // Convertir a ms
-            dataset.addValue(tiempoMs, "Tiempo", algoritmo);
+            
+            sumaTiempos.put(algoritmo, sumaTiempos.getOrDefault(algoritmo, 0.0) + tiempoMs);
+            contadores.put(algoritmo, contadores.getOrDefault(algoritmo, 0) + 1);
+        }
+        
+        // Calcular promedios
+        for (String algoritmo : sumaTiempos.keySet()) {
+            double promedio = sumaTiempos.get(algoritmo) / contadores.get(algoritmo);
+            dataset.addValue(promedio, "Tiempo Promedio", algoritmo);
         }
         
         JFreeChart chart = ChartFactory.createBarChart(
-            "Tiempo de Ejecución por Algoritmo",
+            "Tiempo de Ejecución Promedio por Algoritmo",
             "Algoritmo",
             "Tiempo (ms)",
             dataset,
@@ -262,14 +274,26 @@ public class VentanaEstadisticas extends JDialog {
     private JFreeChart crearGraficoCeldas() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
+        // Agrupar por algoritmo y calcular promedio
+        Map<String, Integer> sumaCeldas = new HashMap<>();
+        Map<String, Integer> contadores = new HashMap<>();
+        
         for (String[] registro : registros) {
             String algoritmo = registro[1];
             int celdas = Integer.parseInt(registro[5]);
-            dataset.addValue(celdas, "Celdas", algoritmo);
+            
+            sumaCeldas.put(algoritmo, sumaCeldas.getOrDefault(algoritmo, 0) + celdas);
+            contadores.put(algoritmo, contadores.getOrDefault(algoritmo, 0) + 1);
+        }
+        
+        // Calcular promedios
+        for (String algoritmo : sumaCeldas.keySet()) {
+            double promedio = (double) sumaCeldas.get(algoritmo) / contadores.get(algoritmo);
+            dataset.addValue(promedio, "Celdas Promedio", algoritmo);
         }
         
         JFreeChart chart = ChartFactory.createLineChart(
-            "Celdas Visitadas por Algoritmo",
+            "Celdas Visitadas Promedio por Algoritmo",
             "Algoritmo",
             "Número de Celdas",
             dataset,
@@ -286,16 +310,28 @@ public class VentanaEstadisticas extends JDialog {
     private JFreeChart crearGraficoLongitud() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
+        // Agrupar por algoritmo y calcular promedio solo para casos exitosos
+        Map<String, Integer> sumaLongitud = new HashMap<>();
+        Map<String, Integer> contadores = new HashMap<>();
+        
         for (String[] registro : registros) {
             if (registro[7].equals("SI")) {
                 String algoritmo = registro[1];
                 int longitud = Integer.parseInt(registro[6]);
-                dataset.addValue(longitud, "Longitud", algoritmo);
+                
+                sumaLongitud.put(algoritmo, sumaLongitud.getOrDefault(algoritmo, 0) + longitud);
+                contadores.put(algoritmo, contadores.getOrDefault(algoritmo, 0) + 1);
             }
         }
         
+        // Calcular promedios
+        for (String algoritmo : sumaLongitud.keySet()) {
+            double promedio = (double) sumaLongitud.get(algoritmo) / contadores.get(algoritmo);
+            dataset.addValue(promedio, "Longitud Promedio", algoritmo);
+        }
+        
         JFreeChart chart = ChartFactory.createBarChart(
-            "Longitud del Camino Encontrado",
+            "Longitud Promedio del Camino Encontrado",
             "Algoritmo",
             "Número de Pasos",
             dataset,
@@ -373,6 +409,12 @@ public class VentanaEstadisticas extends JDialog {
         
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        
+        // Agregar formato al eje Y
+        if (plot.getRangeAxis() instanceof NumberAxis) {
+            NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+            rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        }
     }
     
     private void cargarDatos() {
@@ -416,17 +458,27 @@ public class VentanaEstadisticas extends JDialog {
         
         Component comp = getContentPane().getComponent(1);
         if (comp instanceof JTabbedPane) {
-            JPanel panelTabla = (JPanel) ((JTabbedPane) comp).getComponentAt(0);
-            JPanel panelResumen = (JPanel) panelTabla.getComponent(1);
-            panelResumen.removeAll();
-            
-            JLabel lblResumen = new JLabel(String.format(
-                "Total de ejecuciones: %d | Exitosas: %d | Tasa de éxito: %.1f%%",
-                total, exitosos, total > 0 ? (exitosos * 100.0) / total : 0
-            ));
-            lblResumen.setFont(new Font("Arial", Font.BOLD, 14));
-            panelResumen.add(lblResumen);
-            panelResumen.revalidate();
+            JTabbedPane tabbedPane = (JTabbedPane) comp;
+            Component tabComponent = tabbedPane.getComponentAt(0);
+            if (tabComponent instanceof JPanel) {
+                JPanel panelTabla = (JPanel) tabComponent;
+                if (panelTabla.getComponentCount() > 1) {
+                    Component resumenComponent = panelTabla.getComponent(1);
+                    if (resumenComponent instanceof JPanel) {
+                        JPanel panelResumen = (JPanel) resumenComponent;
+                        panelResumen.removeAll();
+                        
+                        JLabel lblResumen = new JLabel(String.format(
+                            "Total de ejecuciones: %d | Exitosas: %d | Tasa de éxito: %.1f%%",
+                            total, exitosos, total > 0 ? (exitosos * 100.0) / total : 0
+                        ));
+                        lblResumen.setFont(new Font("Arial", Font.BOLD, 14));
+                        panelResumen.add(lblResumen);
+                        panelResumen.revalidate();
+                        panelResumen.repaint();
+                    }
+                }
+            }
         }
     }
     

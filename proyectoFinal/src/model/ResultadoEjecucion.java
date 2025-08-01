@@ -15,6 +15,7 @@ public class ResultadoEjecucion {
     private List<Celda> camino;
     private boolean encontroSolucion;
     
+    // Campos para Programación Dinámica
     private boolean usoProgramacionDinamica;
     private int cachesUtilizados;
     private int tamanoCache;
@@ -29,6 +30,7 @@ public class ResultadoEjecucion {
         this.tamanoCache = 0;
     }
     
+    // Getters y Setters existentes
     public String getNombreAlgoritmo() { 
         return nombreAlgoritmo; 
     }
@@ -79,7 +81,7 @@ public class ResultadoEjecucion {
         return camino.size(); 
     }
     
-    //para Programación Dinámica
+    // Nuevos métodos para Programación Dinámica
     public boolean isUsoProgramacionDinamica() { 
         return usoProgramacionDinamica; 
     }

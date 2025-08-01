@@ -1,0 +1,6 @@
+ID,Algoritmo,Filas,Columnas,Tiempo(ns),CeldasVisitadas,LongitudCamino,Resuelto,UsoPD,CachesUsados,Fecha
+1,BFS (Breadth-First Search),5,5,85300,12,6,SI,NO,0,2025-07-31 19:36:27
+2,DFS,5,5,246900,14,6,SI,NO,0,2025-07-31 19:36:32
+3,Recursivo 2 Direcciones,5,5,1017800,13,9,SI,NO,0,2025-07-31 19:35:46
+4,Recursivo 4 Direcciones,5,5,86600,14,10,SI,NO,0,2025-07-31 19:36:39
+5,Recursivo 4 direcciones con backtracking,5,5,433800,16,6,SI,SI,1,2025-07-31 19:36:43

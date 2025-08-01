@@ -9,7 +9,6 @@ import org.jfree.chart.plot.*;
 import org.jfree.chart.renderer.category.*;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.axis.*;
-// Remover imports problemáticos
 
 /**
  * Ventana para mostrar gráficos estadísticos de los algoritmos
@@ -61,6 +60,9 @@ public class VentanaGraficos extends JDialog {
         
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.setFont(new Font("Arial", Font.BOLD, 14));
+        btnCerrar.setBackground(new Color(150, 150, 150));
+        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setFocusPainted(false);
         btnCerrar.addActionListener(e -> dispose());
         
         panelBotones.add(btnCerrar);
@@ -137,7 +139,7 @@ public class VentanaGraficos extends JDialog {
             false
         );
         
-        personalizarGrafico3D(chart);
+        personalizarGraficoBarras(chart, new Color(255, 152, 0));
         
         return new ChartPanel(chart);
     }
@@ -204,26 +206,20 @@ public class VentanaGraficos extends JDialog {
         plot.setBackgroundPaint(new Color(248, 248, 248));
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+        plot.setOutlineVisible(false);
         
         LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
         renderer.setSeriesPaint(0, new Color(33, 150, 243));
         renderer.setSeriesStroke(0, new BasicStroke(3.0f));
-        renderer.setDefaultShapesVisible(true);
-        renderer.setDefaultShapesFilled(true);
+        renderer.setSeriesShapesVisible(0, true);
+        renderer.setSeriesShapesFilled(0, true);
         
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-    }
-    
-    private void personalizarGrafico3D(JFreeChart chart) {
-        chart.setBackgroundPaint(Color.WHITE);
         
-        CategoryPlot plot = chart.getCategoryPlot();
-        plot.setBackgroundPaint(new Color(248, 248, 248));
-        plot.setForegroundAlpha(0.8f);
-        
-        CategoryAxis domainAxis = plot.getDomainAxis();
-        domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        // Formato del eje Y
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
     }
     
     private void personalizarGraficoMultiple(JFreeChart chart) {
@@ -233,6 +229,7 @@ public class VentanaGraficos extends JDialog {
         plot.setBackgroundPaint(new Color(248, 248, 248));
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+        plot.setOutlineVisible(false);
         
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         
@@ -242,8 +239,13 @@ public class VentanaGraficos extends JDialog {
         renderer.setSeriesPaint(2, new Color(76, 175, 80));  // Longitud - Verde
         
         renderer.setShadowVisible(false);
+        renderer.setMaximumBarWidth(0.1);
         
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        
+        // Formato del eje Y
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
     }
 }
