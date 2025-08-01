@@ -36,7 +36,7 @@ public class PantallaEquipo extends JWindow {
                     // Calcular escala para ajustar al tamaño de la ventana
                     double scaleX = (double) getWidth() / imgWidth;
                     double scaleY = (double) getHeight() / imgHeight;
-                    double scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 para dejar un margen
+                    double scale = Math.min(scaleX, scaleY) * 1;
                     
                     int scaledWidth = (int) (imgWidth * scale);
                     int scaledHeight = (int) (imgHeight * scale);
@@ -232,7 +232,7 @@ public class PantallaEquipo extends JWindow {
         timerFlecha.start();
         
         setContentPane(contenido);
-        setSize(800, 600);
+        setSize(720, 480);
         setLocationRelativeTo(null);
     }
     

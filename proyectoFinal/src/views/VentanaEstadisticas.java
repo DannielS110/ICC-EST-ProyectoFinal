@@ -92,21 +92,21 @@ public class VentanaEstadisticas extends JDialog {
         JButton btnLimpiar = new JButton("Limpiar Historial");
         btnLimpiar.setFont(new Font("Arial", Font.BOLD, 14));
         btnLimpiar.setBackground(new Color(255, 100, 100));
-        btnLimpiar.setForeground(Color.WHITE);
+        btnLimpiar.setForeground(Color.BLACK);
         btnLimpiar.setFocusPainted(false);
         btnLimpiar.addActionListener(e -> limpiarHistorial());
         
         JButton btnActualizar = new JButton("Actualizar");
         btnActualizar.setFont(new Font("Arial", Font.BOLD, 14));
         btnActualizar.setBackground(new Color(100, 200, 100));
-        btnActualizar.setForeground(Color.WHITE);
+        btnActualizar.setForeground(Color.BLACK);
         btnActualizar.setFocusPainted(false);
         btnActualizar.addActionListener(e -> cargarDatos());
         
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.setFont(new Font("Arial", Font.BOLD, 14));
         btnCerrar.setBackground(new Color(150, 150, 150));
-        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setForeground(Color.BLACK);
         btnCerrar.setFocusPainted(false);
         btnCerrar.addActionListener(e -> dispose());
         
